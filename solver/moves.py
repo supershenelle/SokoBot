@@ -1,10 +1,34 @@
+from collections import deque
+from solver.state import State, is_valid 
+
 DIRECTIONS = {
     'u': (-1, 0), 'd': (1, 0),
     'l': (0, -1), 'r': (0, 1), }
 
 def reachable(state, board):
-    # return the set of cells the player can walk to from state.player
-    ...
+    # return the set of cells the player can walk to from state.player 
+    visited = []
+    queue = deque([state.player]) # get front player position and add sa queue
+
+    while queue:
+        row, col = queue.popleft()
+
+        for directionRow, directionCol in DIRECTIONS.values(): #loop through all directions
+            next_pos = (row + directionRow, col + directionCol)
+
+            if next_pos in visited:
+                continue
+
+            if next_pos in board.walls:
+                continue
+
+            if next_pos in state.crates:
+                continue
+
+            visited.append(next_pos)
+            queue.append(next_pos)
+
+    return visited #return lahat ng pede lakaran (skip crates)
 
 def successors(state, board):
     # return a list of all possible successor states for player

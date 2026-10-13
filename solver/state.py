@@ -8,7 +8,7 @@ class State:
 # (we can just count if lahat ng boxes ay nasa targets pero e2 muna hwhahaha)
 def is_goal(state, board):
     for crate in state.crates:
-        if crate not in board.targets:
+        if crate not in board.targets: #board.targets is yung dapat irereturn from map_info, need muna malaman sa iistore
             return False
     return True
 
