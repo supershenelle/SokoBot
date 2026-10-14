@@ -9,7 +9,7 @@ def bfs(board):
     
     start_state = State(board.start_player, board.start_crates) # instantiation of the start state based on what we know
     
-    if start_state.is_goal(start_state, board):
+    if is_goal(start_state, board):
         return ""
     
     queue = deque([start_state]) # creation of queue w/ start state
