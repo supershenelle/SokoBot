@@ -7,7 +7,7 @@ DIRECTIONS = {
 
 def reachable(state, board):
     # return the set of cells the player can walk to from state.player 
-    visited = []
+    visited = {state.player}
     queue = deque([state.player]) # get front player position and add sa queue
 
     while queue:
@@ -18,14 +18,14 @@ def reachable(state, board):
 
             if next_pos in visited:
                 continue
-
+            if not board.in_bounds(next_pos):
+                continue
             if next_pos in board.walls:
                 continue
-
             if next_pos in state.crates:
                 continue
 
-            visited.append(next_pos)
+            visited.add(next_pos)
             queue.append(next_pos)
 
     return visited #return lahat ng pede lakaran (skip crates)
