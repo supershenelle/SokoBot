@@ -21,7 +21,7 @@ def bfs(board):
         for next_state, move in successors(state, board): # this iterates thru both whats returned in successors
         # assuming na it returns a list of (next_state, move) pairs
         
-            if next not in visited: # checks only if not visited yet
+            if next_state not in visited: # checks only if not visited yet
                 visited[next_state] = (state, move)
                 
                 if is_goal(next_state, board):
