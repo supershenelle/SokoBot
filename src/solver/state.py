@@ -1,8 +1,9 @@
-class State:
+from dataclasses import dataclass
 
-    def __init__(self, player, crates):
-        self.player = player
-        self.crates = crates
+@dataclass(frozen=True)
+class State:
+    player: tuple[int, int] #row, col
+    crates: frozenset[tuple[int, int]]
 
 # returns true if all crates are on goal/targets, otherwise false
 # (we can just count if lahat ng boxes ay nasa targets pero e2 muna hwhahaha)
@@ -12,12 +13,23 @@ def is_goal(state, board):
             return False
     return True
 
-
-
 def is_valid(state, board):
-    ...
+    row, col = state.player
 
-# dito ba sya or sa moves.py? kasi andito rin is_valid e
-def is_deadlock(state, board):
-    ...
+    if not (0 <= row < board.height and 0 <= col < board.width): #negative or out of bounds
+        return False
 
+    if (row, col) in board.walls: #player is on wall
+        return False
+
+    if (row, col) in state.crates: #player is on crate
+        return False
+
+    # check if any crate is on wall or out of bounds
+    for (row, col) in state.crates:
+        if not (0 <= row < board.height and 0 <= col < board.width):
+            return False
+        if (row, col) in board.walls:
+            return False
+
+    return True
