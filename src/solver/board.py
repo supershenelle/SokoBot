@@ -1,4 +1,4 @@
-from solver.state import State
+from src.solver.state import State
 
 class Board:
     def __init__(self, width, height, map, objects):
