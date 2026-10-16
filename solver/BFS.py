@@ -2,7 +2,7 @@ from collections import deque
 from solver.board import Board
 from solver.state import State, is_goal
 from solver.moves import successors
-                
+from solver.moves import corner_deadlock
 
 def bfs(board):
     # uses board cuz instance of it and makes use of the contents in it
@@ -11,7 +11,7 @@ def bfs(board):
     
     if is_goal(start_state, board):
         return ""
-    
+     
     queue = deque([start_state]) # creation of queue w/ start state
     visited = {start_state: None} # so this is a dictionary that holds the current state (key) and its associated move (value)
     
@@ -22,6 +22,10 @@ def bfs(board):
         # assuming na it returns a list of (next_state, move) pairs
         
             if next_state not in visited: # checks only if not visited yet
+
+                if corner_deadlock(next_state, board): # INIMPLEMENT KO NA HERE YUNG CORNER DEADLOCK CHECK
+                    continue
+
                 visited[next_state] = (state, move)
                 
                 if is_goal(next_state, board):

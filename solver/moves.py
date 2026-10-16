@@ -68,3 +68,28 @@ def successors(state, board):
 def path_to_goal(state, board):
     # return a list of moves (string) to reach the goal from state.player
     ...
+
+def simple_deadlock(state, board): #also called dead square deadlock
+    # return true if state is a simple deadlock, otherwise false
+    ...
+
+def corner_deadlock(state, board):
+    # return true if state is a corner deadlock, otherwise false
+    for crate in state.crates:
+        
+        if crate in board.targets: # checks if crate is on target
+            continue
+
+        # check if crate is adjacent to a wall
+        row, col = crate 
+        up = (row - 1, col) in board.walls
+        down = (row + 1, col) in board.walls
+        left = (row, col - 1) in board.walls
+        right = (row, col + 1) in board.walls
+
+        # check if crate is in corner
+        if (up and left) or (up and right) or (down and left) or (down and right):
+            return True
+
+    return False
+
