@@ -2,7 +2,7 @@ from collections import deque
 from solver.board import Board
 from solver.state import State, is_goal
 from solver.moves import successors
-from solver.moves import corner_deadlock
+from solver.moves import corner_deadlock, simple_deadlock
 
 def bfs(board):
     # uses board cuz instance of it and makes use of the contents in it
@@ -23,7 +23,10 @@ def bfs(board):
         
             if next_state not in visited: # checks only if not visited yet
 
-                if corner_deadlock(next_state, board): # INIMPLEMENT KO NA HERE YUNG CORNER DEADLOCK CHECK
+                if simple_deadlock(next_state, board): # DEAD SQUARE DEADLOCK
+                    continue
+
+                if corner_deadlock(next_state, board): # CORNER DEAD LOCK (IDK IF KAILANGAN PA TO... ITO KASI INUNA KO IMPLEMENT MWHAHAHA)
                     continue
 
                 visited[next_state] = (state, move)

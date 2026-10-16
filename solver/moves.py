@@ -1,5 +1,5 @@
 from collections import deque
-from solver.state import State, is_valid 
+from solver.state import State, is_valid, in_bounds
 
 DIRECTIONS = {
     'u': (-1, 0), 'd': (1, 0),
@@ -69,12 +69,43 @@ def path_to_goal(state, board):
     # return a list of moves (string) to reach the goal from state.player
     ...
 
+# return true if state is a simple deadlock, otherwise false
 def simple_deadlock(state, board): #also called dead square deadlock
-    # return true if state is a simple deadlock, otherwise false
-    ...
+    #to check if the pos is not out of bounds and is not a wall (bale gagamitin ko nlng in_bounds tapos add ako condition for walls)
+    def is_dead_square(pos):
+        return board.in_bounds(pos) and pos not in board.walls
 
+    #put all target pos in queue
+    alive_squares = set(board.targets)
+    queue = deque(board.targets) # start sa goal 
+
+    #BFS to find all alive squares
+    while queue:
+        row, col = queue.popleft()
+
+        #get previous crate and player position from pulling the current crate position
+        for directionRow, directionCol in DIRECTIONS.values():
+            prev_crate = (row - directionRow, col - directionCol)
+            prev_player = (row - 2 * directionRow, col - 2 * directionCol)
+
+            #this checks if you pull the crate in a direction, valid ba sya or out of bounds or wall, and if the player can reach the position to push the crate
+            if is_dead_square(prev_crate) and is_dead_square(prev_player) and prev_crate not in alive_squares:
+                alive_squares.add(prev_crate)
+                queue.append(prev_crate)
+
+    # every non-wall square that is not in alive
+    dead_squares = set()
+    for row in range(board.height):
+        for col in range(board.width):
+            pos = (row, col)
+            if is_dead_square(pos) and pos not in alive_squares:
+                dead_squares.add(pos)
+    return dead_squares
+
+
+
+# return true if state is a corner deadlock, otherwise false
 def corner_deadlock(state, board):
-    # return true if state is a corner deadlock, otherwise false
     for crate in state.crates:
         
         if crate in board.targets: # checks if crate is on target
