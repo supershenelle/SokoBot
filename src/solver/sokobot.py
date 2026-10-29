@@ -1,7 +1,7 @@
 import time
 
 from src.solver.board import Board
-from src.solver.BFS import bfs
+from src.solver.astar import astar
 
 
 class SokoBot:
@@ -15,4 +15,4 @@ class SokoBot:
         if board.start_player is None:
             return ""
 
-        return bfs(board)
+        return astar(board)
