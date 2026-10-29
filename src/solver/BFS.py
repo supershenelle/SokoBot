@@ -1,53 +1,77 @@
-from collections import deque
-from src.solver.board import Board
+import heapq
+from itertools import count
+
 from src.solver.state import State, is_goal
-from src.solver.moves import successors, corner_deadlock, simple_deadlock
+from src.solver.moves import (successors, walk_path, simple_deadlock,
+                              freeze_deadlock, heuristic, reachable)
 
-def bfs(board):
-    # uses board cuz instance of it and makes use of the contents in it
-    
-    start_state = State(board.start_player, board.start_crates) # instantiation of the start state based on what we know
-    
-    if is_goal(start_state, board):
+
+def bfs(board, weight=12):
+    """
+    Kept the name `bfs` so sokobot.py doesn't change, but this is now A* over PUSHES.
+    weight=1 -> normal A* (fewest pushes). weight>1 -> faster, slightly longer solutions.
+    """
+    start = State(board.start_player, board.start_crates)
+    if is_goal(start, board):
         return ""
-     
-    queue = deque([start_state]) # creation of queue w/ start state
-    visited = {start_state: None} # so this is a dictionary that holds the current state (key) and its associated move (value)
-    
-    while queue:
-        state = queue.popleft() # start of dequeue
-        
-        for next_state, move in successors(state, board): # this iterates thru both whats returned in successors
-        # assuming na it returns a list of (next_state, move) pairs
-        
-            if next_state not in visited: # checks only if not visited yet
 
-                # CON: i just moved this call here kasi yung prob nga na repetitive lang yung pag call ng mga deadlock when di naman siya nagbabago per state
-                visited[next_state] = (state, move)
+    tie = count()  # tie-breaker so heapq never has to compare State objects
 
-                if simple_deadlock(next_state, board): # DEAD SQUARE DEADLOCK
-                    continue
+    # visited key = (canonical player, crates). Same crate layout + same reachable
+    # region of the player == same state, no matter where the player is standing.
+    start_key = (min(reachable(start, board)), start.crates)
+    h0 = heuristic(start.crates, board)
 
-                if corner_deadlock(next_state, board): # CORNER DEAD LOCK (IDK IF KAILANGAN PA TO... ITO KASI INUNA KO IMPLEMENT MWHAHAHA)
-                    continue
-                
-                if is_goal(next_state, board):
-                    return get_moves(next_state, visited)
-                
-                queue.append(next_state)
-                    
+    # node = (state, parent_node_id, push_info)
+    nodes = [(start, None, None)]
+    best_g = {start_key: 0}
+    heap = [(weight * h0, h0, next(tie), 0, 0)]  # (f, h, tie, g, node_id)
+
+    while heap:
+        f, h, _, g, nid = heapq.heappop(heap)
+        state = nodes[nid][0]
+
+        if is_goal(state, board):
+            return build_solution(nodes, nid, board)
+
+        reach = reachable(state, board)  # flood fill ONCE per expanded state
+        key = (min(reach), state.crates)
+        if g > best_g.get(key, 1 << 30):
+            continue  # stale heap entry, a cheaper path to this state was found
+
+        for next_state, push in successors(state, board, reach):
+            if simple_deadlock(next_state, board):
+                continue
+            if freeze_deadlock(next_state, push, board):
+                continue
+
+            ng = g + 1
+            nkey = (min(reachable(next_state, board)), next_state.crates)
+            if ng >= best_g.get(nkey, 1 << 30):
+                continue
+            best_g[nkey] = ng
+
+            nh = heuristic(next_state.crates, board)
+            nodes.append((next_state, nid, push))
+            heapq.heappush(heap, (ng + weight * nh, nh, next(tie), ng, len(nodes) - 1))
+
     return ""
 
-# ok sana tama gawa ko rito pero this js takes the associated moves from the visited dictionary, reverses it, then returns the list of moves
-def get_moves(goal_state, visited):
-    moves = []
-    current_state = goal_state
-    
-    while visited[current_state] is not None: # u start from goal state and the state before it and continue until u reach start state
-        initial_state, move = visited[current_state]
-        moves.append(move) # places the rlud whatever sa moves
-        current_state = initial_state
-        
-    moves.reverse()
-    return "".join(moves) # since string of moves yung needdd
-    
+
+def build_solution(nodes, goal_id, board):
+    # walking paths are only computed ONCE here, for the final answer,
+    # instead of for every candidate push during the search.
+    chain = []
+    nid = goal_id
+    while nodes[nid][1] is not None:
+        chain.append(nid)
+        nid = nodes[nid][1]
+    chain.reverse()
+
+    out = []
+    for nid in chain:
+        _, parent_id, (stand_pos, move) = nodes[nid]
+        parent_state = nodes[parent_id][0]
+        out.append(walk_path(parent_state.player, stand_pos, parent_state, board))
+        out.append(move)
+    return "".join(out)

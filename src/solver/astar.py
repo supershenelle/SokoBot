@@ -8,7 +8,7 @@ def astar(board):
     
     start_state = State(board.start_player, board.start_crates) # instantiation of the start state based on what we know
     
-    if is_goal(start_state, board): 
+    if is_goal(start_state, board):
         return ""
     
     g_scores = {start_state: 0} # so this is a dictionary that holds the current state (key) and its associated move (value)

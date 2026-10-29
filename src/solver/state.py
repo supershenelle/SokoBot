@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import board
 
 @dataclass(frozen=True)
 class State:

@@ -18,6 +18,22 @@ class Board:
         self.start_crates = frozenset(crates) #para sa starting position ng crates and player
         self.start_player = player 
 
+        # precompute once: pushes-to-goal per square (also gives dead squares)
+        from src.solver.moves import compute_push_dist, compute_dead_squares
+        self.push_dist = compute_push_dist(self)
+        self.dead_squares_cache = compute_dead_squares(self)
+
+        # precompute: for every floor cell, its non-wall neighbors (so flood fill needs no bounds/wall checks)
+        self.neighbors = {}
+        for r in range(height):
+            for c in range(width):
+                if (r, c) in self.walls:
+                    continue
+                self.neighbors[(r, c)] = tuple(
+                    n for n in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1))
+                    if 0 <= n[0] < height and 0 <= n[1] < width and n not in self.walls
+                )
+
     #to check if nasa loob ng board yung (r,c)
     def in_bounds(self, pos):
         r, c = pos
