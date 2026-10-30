@@ -1,18 +1,35 @@
 from dataclasses import dataclass
 
+###
+# @param player (row, col) position of the player
+# @param crates frozenset of (row, col) positions of all crates
+###
 @dataclass(frozen=True)
 class State:
     player: tuple[int, int] #row, col
     crates: frozenset[tuple[int, int]]
 
-# returns true if all crates are on goal/targets, otherwise false
-# (we can just count if lahat ng boxes ay nasa targets pero e2 muna hwhahaha)
+###
+# checks if all crates are on goal/targets
+# @param state the State to check
+# @param board the Board holding the set of target positions
+# @return True if every crate is on a target, otherwise False
+###
 def is_goal(state, board):
     for crate in state.crates:
-        if crate not in board.targets: #board.targets is yung dapat irereturn from map_info, need muna malaman sa iistore
+        if crate not in board.targets: 
             return False
     return True
 
+###
+# Checks whether a state is valid: if player and all crates are
+# inside the board, not in wall, and  player is not on a crate
+#
+# @param state is the state to check
+# @param board holds the dimensions and wall positions
+# @return       True if the state is legal, otherwise False
+# @pre          board.width, board.height and board.walls are initialized
+###
 def is_valid(state, board):
     row, col = state.player
 

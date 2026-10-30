@@ -1,7 +1,17 @@
 from src.solver.state import State
 from src.solver.moves import compute_push_dist, compute_dead_squares
 
+
 class Board:
+    ###
+    # stores information about the maps and precomputes functions used by the solver: push
+    # distances, dead squares, and walkable neighbors for each cell.
+    #
+    # @param width    number of columns in the map
+    # @param height   number of rows in the map
+    # @param map      contains '#' walls and '.' targets
+    # @param objects  contains '$' crates and '@' player
+    ###
     def __init__(self, width, height, map, objects):
         self.width = width
         self.height = height
@@ -36,13 +46,26 @@ class Board:
                     if 0 <= n[0] < height and 0 <= n[1] < width and n not in self.walls
                 )
 
-    #to check if nasa loob ng board yung (r,c)
+
+    ###
+    # Checks whether a position is inside the board (r, c).
+    #
+    # @param pos (row, col) position to check
+    # @return True if 0 <= row < height and 0 <= col < width, otherwise False
+    ###
     def in_bounds(self, pos):
         r, c = pos
         return 0 <= r < self.height and 0 <= c < self.width
 
 
-
+###
+# checks the map and collects  the positions of all walls, targets, crates, and the player.
+# @param width number of columns in the map
+# @param height number of rows in the map
+# @param map      contains '#' walls and '.' targets
+# @param objects  contains '$' crates and '@' player
+# @return walls, targets, crates, player positions
+###
 def map_info(width, height, map, objects):
     walls, targets, crates = [], [], []  #check if may better data struct to represent this
 
