@@ -5,9 +5,12 @@ DIRECTIONS = {
     'u': (-1, 0), 'd': (1, 0),
     'l': (0, -1), 'r': (0, 1), }
 
-
+# Finds every square the player can reach without moving a crate.
+# Uses a stack (DFS) for fast exploration of the connected room.
+# @param state the current State (holds player position and crates)
+# @param board the Board class holding precomputed walkable neighbors
+# @return a set of all reachable (row,col) coordinates
 def reachable(state, board):
-    # Find every square the player can reach without moving a crate.
     crates = state.crates
     nbrs = board.neighbors
     explored = {state.player}
@@ -22,12 +25,23 @@ def reachable(state, board):
     return explored
 
 
-# returns yung minimum square na reachable ng player, used for heuristic
-# cocompare niya yung row tas column
+# Return the top-leftmost reachable square for the player.
+# @param state the current State
+# @param board the Board class
+# @reutnr a single (row,col) tuple representing the canonical position
 def min_square(state, board):
+    # returns yung minimum square na reachable ng player, used for heuristic
+    # # cocompare niya yung row tas column
     return min(reachable(state, board)) 
 
 
+# Reconstructs the exact walking path from a start position to a goal position.
+# Uses BFS to guarantee the shortest walking distance.
+# @param start the starting (row,col) position of the player
+# @param goal the target (row,col) position to reach
+# @param state the burrent State (para maiwasan yung crates)
+# @param board the Board class
+# @return a string of moves (u, d, l, r) or an empty string if already there
 def walk_path(start, goal, state, board):
     if start == goal: # if nasa goal na return empty string
         return ""
@@ -57,7 +71,11 @@ def walk_path(start, goal, state, board):
             queue.append(nxt) # otherwise, add to queue for exploration
     return None
 
-
+# Generates all valid crate pushes from the current state
+# @param state the current State
+# @param board the Boarad class
+# @param player_moves optional pre-computed set of reachable squares to save time
+# @return a list of tuples in the format (next_state, push_info) where push_info is (stand_pos, move)
 def successors(state, board, player_moves=None):
     # returns (next_state, (stand_pos, move)) for every legal PUSH.
     if player_moves is None: # find reachable squares
@@ -86,15 +104,27 @@ def successors(state, board, player_moves=None):
 
 # ---------- deadlocks ----------
 
+# Checks if any crate is currently sitting on a precomputed dead square.
+# @param state the current State
+# @param board the Board class
+# @return True is a crate is on a dead squarem otherwise False
 def simple_deadlock(state, board):
     dead = board.dead_squares_cache # retrieve lang ung dead squares na na precompute sa board
     return any(crate in dead for crate in state.crates)
 
+# Computes all dead squares on the board (square from which a crate can never reach a target)
+# A square is dead if it is not a wall and has no valid push distance to any target
+# @param board the Board class
+# @return a frozenset of dead (row,col) coordinatess
 def compute_dead_squares(board):
     return frozenset(
         (r, c) for r in range(board.height) for c in range(board.width)
         if (r, c) not in board.walls and (r, c) not in board.push_dist )
 
+# Precomputes the exact minimum number of pushes required to get a car ate from any square to a target.
+# Uses BFS stating from all tar gets,
+# @param board the Board class
+# @return a dictionary mapping (row,col) to push distance
 def compute_push_dist(board):
     def ok(p): # helper ko lang hehe if inside board and not wall
         return board.in_bounds(p) and p not in board.walls
@@ -111,13 +141,21 @@ def compute_push_dist(board):
                 queue.append(crate_prev)
     return dist
 
-
+# The A* heuristic is calculated by getting the sums of the exact minimum push distances of all crates to the targets
+# @param crates the frozenset of current crates positions
+# @param board the Board ckass
+# @return an integer representing the estimated remaining pushes
 def heuristic(crates, board):
     # sum of each crate's own min push distance to a goal
     d = board.push_dist
     return sum(d[c] for c in crates if c not in board.targets)
 
-
+# Detects if a crate (or a group of connected crates) has become frozen in place and is not reting on a target
+# (meaning the puzzle is unsolvable)
+# @param state the current State
+# @oaram push the push_info tuple (standard_pos, move) that just occurred
+# @param board the Board class
+# @return True if a dead freeze occurredm otherwise false.
 def freeze_deadlock(state, push, board):
     # after a push, check the pushed crate (and crates touching it) for a frozen group
     crates = state.crates
