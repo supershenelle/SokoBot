@@ -1,4 +1,5 @@
 from src.solver.state import State
+from src.solver.moves import compute_push_dist, compute_dead_squares
 
 class Board:
     def __init__(self, width, height, map, objects):
@@ -12,18 +13,19 @@ class Board:
         #call map_info para maextract yung walls, targets, crates, and player
         walls, targets, crates, player = map_info(width, height, map, objects)
 
-        #use frozenset to make the searching faster for BFS
+        #use frozenset to make the searching faster for the search algo
         self.walls = frozenset(walls)
         self.targets = frozenset(targets)
         self.start_crates = frozenset(crates) #para sa starting position ng crates and player
         self.start_player = player 
 
-        # precompute once: pushes-to-goal per square (also gives dead squares)
-        from src.solver.moves import compute_push_dist, compute_dead_squares
+        # computes the distance of pushes to goal per loc, pero also adds the dead locs/squares prior
+        # para di na icompute kada step
         self.push_dist = compute_push_dist(self)
         self.dead_squares_cache = compute_dead_squares(self)
 
-        # precompute: for every floor cell, its non-wall neighbors (so flood fill needs no bounds/wall checks)
+        # builds the mapping from each loc/grid to yung walkable neighbors
+        # precomputes beforehand so no filtering or rechecking needs to be done, mapping nalang
         self.neighbors = {}
         for r in range(height):
             for c in range(width):
