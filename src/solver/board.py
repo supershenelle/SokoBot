@@ -23,13 +23,4 @@ def map_info(width, height, map, objects):
                 player = (row, col)
 
     return walls, targets, crates, player
-
-
-
-    """
-    width: int
-    height: int
-    map: walls and targets
-    objects: players and crates
-    """
     ...

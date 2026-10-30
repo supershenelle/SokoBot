@@ -1,5 +1,5 @@
 from collections import deque
-from solver.state import State, is_valid 
+from src.solver.state import State, is_valid 
 
 DIRECTIONS = {
     'u': (-1, 0), 'd': (1, 0),
