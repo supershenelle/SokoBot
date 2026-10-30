@@ -33,26 +33,3 @@ def is_valid(state, board):
             return False
 
     return True
-
-# implementation of the manhattan distance
-def manhattan_distance(start_pos, end_pos):
-    return abs(start_pos[0] - end_pos[0]) + abs(start_pos[1] - end_pos[1])
-
-
-# GEANE: this gets the heuristic of the state, so like distance from the crates to the targets
-def get_heuristic(state, board):
-   if not board.targets:
-       return 0
-   
-   total = 0
-   for crate in state.crates:
-       closest = None
-       for target in board.targets:
-           distance = manhattan_distance(crate, target)
-           if closest is None or distance < closest:
-               closest = distance
-               
-       total += closest
-    
-   return total
-        
